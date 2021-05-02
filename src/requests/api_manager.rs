@@ -3,6 +3,8 @@ use std::future::Future;
 use reqwest::{Client, Error, Response};
 use serde::Serialize;
 
+pub const API_VERSION: &'static str = "5.130";
+
 pub struct ApiManager {
     token: String,
     version: String,
