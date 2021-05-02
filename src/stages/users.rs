@@ -2,7 +2,7 @@ use std::fmt::Debug;
 
 use serde::Deserialize;
 
-use crate::requests::api_manager::ApiManager;
+use crate::{requests::api_manager::ApiManager, RobberError};
 
 #[derive(Debug, Deserialize)]
 pub struct CareerInfo {
@@ -217,12 +217,6 @@ pub struct User {
     verified: Option<i32>,
 }
 
-#[derive(Debug)]
-pub enum RobberError {
-    SerdeError(serde_json::Error),
-    ReqwestError(reqwest::Error),
-}
-
 #[derive(Deserialize)]
 pub struct UserGet {
     response: Vec<User>,
@@ -238,13 +232,9 @@ impl User {
         fields: &str,
     ) -> Result<User, RobberError> {
         let mut resp = api
-            .request("users.get", &[("user_id", user_id), ("fields", fields)])
+            .request_json::<_, UserGet>("users.get", &[("user_ids", user_id), ("fields", fields)])
             .await
-            .map_err(|e| RobberError::ReqwestError(e))?
-            .json::<UserGet>()
-            .await
-            .map_err(|e| RobberError::ReqwestError(e))?;
-
+            .unwrap();
         Ok(resp.response.pop().unwrap())
     }
 }

@@ -1,7 +1,9 @@
 use std::future::Future;
 
 use reqwest::{Client, Error, Response};
-use serde::Serialize;
+use serde::{Deserialize, Serialize};
+
+use crate::RobberError;
 
 pub const API_VERSION: &'static str = "5.130";
 
@@ -39,5 +41,22 @@ impl ApiManager {
         let request = request.query(&[("access_token", &self.token), ("v", &self.version)]);
 
         request.send()
+    }
+
+    pub async fn request_json<'a, T: Serialize + ?Sized, Y>(
+        &self,
+        method: &str,
+        params: &T,
+    ) -> Result<Y, RobberError>
+    where
+        Y: for<'de> Deserialize<'de>,
+    {
+        Ok(self
+            .request(method, params)
+            .await
+            .map_err(|e| RobberError::ReqwestError(e))?
+            .json::<Y>()
+            .await
+            .map_err(|e| RobberError::ReqwestError(e))?)
     }
 }
