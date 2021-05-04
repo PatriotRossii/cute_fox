@@ -1,4 +1,4 @@
-use group_robber::{
+use cute_fox::{
     requests::api_manager::{ApiManager, API_VERSION},
     stages::groups::Group,
 };

@@ -1,4 +1,4 @@
-use group_robber::stages::users::User;
+use cute_fox::stages::users::User;
 
 #[test]
 fn test_deserialize() {
