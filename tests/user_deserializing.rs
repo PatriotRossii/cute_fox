@@ -1,5 +1,4 @@
 use group_robber::stages::users::User;
-use serde_json::Result;
 
 #[test]
 fn test_deserialize() {
