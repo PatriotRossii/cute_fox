@@ -8,13 +8,14 @@ edition = "2018"
 
 [dependencies]
 serde_json = "1"
+
+rusqlite = { version = "0.24", features = ["bundled"] }
+
 serde = { version = "1", features = ["derive"] }
+serde_with = "1"
+
 reqwest = { version = "0", features = ["json"] }
 tokio = { version = "1", features = ["rt", "macros", "rt-multi-thread", "time"] }
-
-[dependencies.rusqlite]
-version = "0.25.1"
-features = ["bundled"]
 
 [[bin]]
 name = "user_from_page"
@@ -27,3 +28,7 @@ path = "tests/get_members_ids.rs"
 [[bin]]
 name = "get_members"
 path = "tests/get_members.rs"
+
+[[bin]]
+name = "save_user"
+path = "tests/save_user/save_user.rs"

@@ -5,7 +5,7 @@ use serde::{Deserialize, Serialize};
 
 use crate::RobberError;
 
-pub const API_VERSION: &'static str = "5.130";
+pub const API_VERSION: &str = "5.130";
 
 pub struct ApiManager {
     token: String,
@@ -54,9 +54,9 @@ impl ApiManager {
         Ok(self
             .request(method, params)
             .await
-            .map_err(|e| RobberError::ReqwestError(e))?
+            .map_err(RobberError::ReqwestError)?
             .json::<Y>()
             .await
-            .map_err(|e| RobberError::ReqwestError(e))?)
+            .map_err(RobberError::ReqwestError)?)
     }
 }
