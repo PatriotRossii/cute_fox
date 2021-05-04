@@ -231,10 +231,24 @@ impl User {
         user_id: &str,
         fields: &str,
     ) -> Result<User, RobberError> {
-        let mut resp = api
+        let result = User::from_pages(api, user_id, fields).await;
+        if let Ok(mut e) = result {
+            Ok(e.pop().unwrap())
+        } else if let Err(e) = result {
+            Err(e)
+        } else {
+            unreachable!()
+        }
+    }
+    pub async fn from_pages(
+        api: &ApiManager,
+        user_id: &str,
+        fields: &str,
+    ) -> Result<Vec<User>, RobberError> {
+        let resp = api
             .request_json::<_, UserGet>("users.get", &[("user_ids", user_id), ("fields", fields)])
             .await
             .unwrap();
-        Ok(resp.response.pop().unwrap())
+        Ok(resp.response)
     }
 }
