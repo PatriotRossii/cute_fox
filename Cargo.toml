@@ -23,3 +23,7 @@ path = "tests/user_from_page.rs"
 [[bin]]
 name = "get_members_ids"
 path = "tests/get_members_ids.rs"
+
+[[bin]]
+name = "get_members"
+path = "tests/get_members.rs"
