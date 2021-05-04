@@ -163,7 +163,7 @@ pub struct User {
     first_name: String,
     last_name: String,
     deactivated: Option<String>,
-    is_closed: bool,
+    is_closed: Option<bool>,
 
     about: Option<String>,
     activities: Option<String>,
