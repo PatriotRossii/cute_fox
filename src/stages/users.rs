@@ -1,6 +1,6 @@
 use crate::{requests::api_manager::ApiManager, RobberError};
 use rusqlite::params;
-use serde::{Deserialize, Deserializer, Serialize};
+use serde::{Deserialize, Serialize};
 use serde_with::serde_as;
 
 macro_rules! try_save {
@@ -33,7 +33,7 @@ macro_rules! store_many {
 pub trait StoreExt {
     fn store(
         self,
-        connection: &rusqlite::Connection,
+        connection: &rusqlite::Transaction,
         table_name: &str,
         user_id: i64,
     ) -> Result<usize, rusqlite::Error>;
@@ -64,7 +64,7 @@ pub struct CareerInfo {
 impl StoreExt for CareerInfo {
     fn store(
         self,
-        connection: &rusqlite::Connection,
+        connection: &rusqlite::Transaction,
         table_name: &str,
         user_id: i64,
     ) -> Result<usize, rusqlite::Error> {
@@ -89,21 +89,20 @@ impl StoreExt for CareerInfo {
 #[derive(Debug, Deserialize, Serialize)]
 pub struct City {
     id: i64,
-    title: String,
 }
 
 impl StoreExt for City {
     fn store(
         self,
-        connection: &rusqlite::Connection,
+        connection: &rusqlite::Transaction,
         table_name: &str,
         user_id: i64,
     ) -> Result<usize, rusqlite::Error> {
         let query = format!(
-            "INSERT OR REPLACE INTO {} (user_id, id, title) VALUES (?, ?, ?)",
+            "INSERT OR REPLACE INTO {} (user_id, id) VALUES (?, ?)",
             table_name
         );
-        connection.execute(&query, params![user_id, self.id, self.title])
+        connection.execute(&query, params![user_id, self.id])
     }
 }
 
@@ -124,7 +123,7 @@ pub struct Counters {
 impl StoreExt for Counters {
     fn store(
         self,
-        connection: &rusqlite::Connection,
+        connection: &rusqlite::Transaction,
         table_name: &str,
         user_id: i64,
     ) -> Result<usize, rusqlite::Error> {
@@ -151,21 +150,20 @@ impl StoreExt for Counters {
 #[derive(Debug, Deserialize, Serialize)]
 pub struct Country {
     id: i64,
-    title: String,
 }
 
 impl StoreExt for Country {
     fn store(
         self,
-        connection: &rusqlite::Connection,
+        connection: &rusqlite::Transaction,
         table_name: &str,
         user_id: i64,
     ) -> Result<usize, rusqlite::Error> {
         let query = format!(
-            "INSERT OR REPLACE INTO {} (user_id, id, title) VALUES (?, ?, ?)",
+            "INSERT OR REPLACE INTO {} (user_id, id) VALUES (?, ?)",
             table_name
         );
-        connection.execute(&query, params![user_id, self.id, self.title])
+        connection.execute(&query, params![user_id, self.id])
     }
 }
 
@@ -185,7 +183,7 @@ pub struct EducationInfo {
 impl StoreExt for EducationInfo {
     fn store(
         self,
-        connection: &rusqlite::Connection,
+        connection: &rusqlite::Transaction,
         table_name: &str,
         user_id: i64,
     ) -> Result<usize, rusqlite::Error> {
@@ -207,13 +205,13 @@ impl StoreExt for EducationInfo {
 #[derive(Debug, Deserialize, Serialize)]
 pub struct LastSeen {
     time: i64,
-    platform: i64,
+    platform: Option<i64>,
 }
 
 impl StoreExt for LastSeen {
     fn store(
         self,
-        connection: &rusqlite::Connection,
+        connection: &rusqlite::Transaction,
         table_name: &str,
         user_id: i64,
     ) -> Result<usize, rusqlite::Error> {
@@ -237,7 +235,7 @@ pub struct MilitaryInfo {
 impl StoreExt for MilitaryInfo {
     fn store(
         self,
-        connection: &rusqlite::Connection,
+        connection: &rusqlite::Transaction,
         table_name: &str,
         user_id: i64,
     ) -> Result<usize, rusqlite::Error> {
@@ -260,14 +258,14 @@ impl StoreExt for MilitaryInfo {
 pub struct Occupation {
     #[serde(rename = "type")]
     r#type: String,
-    id: i64,
-    name: String,
+    id: Option<i64>,
+    name: Option<String>,
 }
 
 impl StoreExt for Occupation {
     fn store(
         self,
-        connection: &rusqlite::Connection,
+        connection: &rusqlite::Transaction,
         table_name: &str,
         user_id: i64,
     ) -> Result<usize, rusqlite::Error> {
@@ -308,7 +306,7 @@ pub enum Personal {
 impl StoreExt for Personal {
     fn store(
         self,
-        connection: &rusqlite::Connection,
+        connection: &rusqlite::Transaction,
         table_name: &str,
         user_id: i64,
     ) -> Result<usize, rusqlite::Error> {
@@ -352,7 +350,7 @@ pub struct Relative {
 impl StoreExt for Relative {
     fn store(
         self,
-        connection: &rusqlite::Connection,
+        connection: &rusqlite::Transaction,
         table_name: &str,
         user_id: i64,
     ) -> Result<usize, rusqlite::Error> {
@@ -374,7 +372,7 @@ pub enum Relatives {
 impl StoreExt for Relatives {
     fn store(
         self,
-        connection: &rusqlite::Connection,
+        connection: &rusqlite::Transaction,
         table_name: &str,
         user_id: i64,
     ) -> Result<usize, rusqlite::Error> {
@@ -407,7 +405,7 @@ pub struct RelationPartner {
 impl StoreExt for RelationPartner {
     fn store(
         self,
-        connection: &rusqlite::Connection,
+        connection: &rusqlite::Transaction,
         table_name: &str,
         user_id: i64,
     ) -> Result<usize, rusqlite::Error> {
@@ -453,7 +451,7 @@ pub struct School {
 impl StoreExt for School {
     fn store(
         self,
-        connection: &rusqlite::Connection,
+        connection: &rusqlite::Transaction,
         table_name: &str,
         user_id: i64,
     ) -> Result<usize, rusqlite::Error> {
@@ -492,7 +490,7 @@ pub struct Contacts {
 impl StoreExt for Contacts {
     fn store(
         self,
-        connection: &rusqlite::Connection,
+        connection: &rusqlite::Transaction,
         table_name: &str,
         user_id: i64,
     ) -> Result<usize, rusqlite::Error> {
@@ -540,7 +538,7 @@ pub struct University {
 impl StoreExt for University {
     fn store(
         self,
-        connection: &rusqlite::Connection,
+        connection: &rusqlite::Transaction,
         table_name: &str,
         user_id: i64,
     ) -> Result<usize, rusqlite::Error> {
@@ -576,7 +574,7 @@ pub enum Career {
 impl StoreExt for Career {
     fn store(
         self,
-        connection: &rusqlite::Connection,
+        connection: &rusqlite::Transaction,
         table_name: &str,
         user_id: i64,
     ) -> Result<usize, rusqlite::Error> {
@@ -596,7 +594,7 @@ pub enum Universities {
 impl StoreExt for Universities {
     fn store(
         self,
-        connection: &rusqlite::Connection,
+        connection: &rusqlite::Transaction,
         table_name: &str,
         user_id: i64,
     ) -> Result<usize, rusqlite::Error> {
@@ -615,7 +613,7 @@ pub enum Schools {
 impl StoreExt for Schools {
     fn store(
         self,
-        connection: &rusqlite::Connection,
+        connection: &rusqlite::Transaction,
         table_name: &str,
         user_id: i64,
     ) -> Result<usize, rusqlite::Error> {
@@ -635,7 +633,7 @@ pub enum Military {
 impl StoreExt for Military {
     fn store(
         self,
-        connection: &rusqlite::Connection,
+        connection: &rusqlite::Transaction,
         table_name: &str,
         user_id: i64,
     ) -> Result<usize, rusqlite::Error> {
@@ -778,7 +776,7 @@ pub struct User {
 }
 
 impl User {
-    pub fn store(self, connection: &rusqlite::Connection, table_name: &str) {
+    pub fn store(self, connection: &rusqlite::Transaction, table_name: &str) {
         let query = format!("INSERT OR REPLACE INTO {} (id, first_name, last_name, deactivated, is_closed, about, activities, bdate, books, domain, followers_count, games, has_mobile, has_photo, home_town, interests, maiden_name, movies, music, nickname, photo_max_orig, quotes, screen_name, sex, site, status, tv, verified, skype, facebook, twitter, livejournal, instagram) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)", table_name);
 
         if let Err(e) = connection.execute(
