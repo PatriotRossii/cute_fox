@@ -1,7 +1,4 @@
-use cute_fox::{
-    requests::api_manager::{ApiManager, API_VERSION},
-    stages::users::User,
-};
+use cute_fox::{requests::api_manager::{ApiManager, API_VERSION}, stages::users::{UserInteraction}};
 
 #[tokio::main]
 async fn main() {
@@ -11,8 +8,8 @@ async fn main() {
     let access_token = args.next().expect("Please, specify argument: ACCESS_TOKEN");
     let user_id = args.next().expect("Please, specify argument: USER_ID");
 
-    let api_manager = ApiManager::new(access_token, API_VERSION);
-    let user = User::from_page(&api_manager, &user_id, "relatives").await;
+    let api = ApiManager::new(access_token, API_VERSION);
+    let user = api.get_user(&user_id, "relatives").await;
 
     println!("{:#?}", user.unwrap());
 }

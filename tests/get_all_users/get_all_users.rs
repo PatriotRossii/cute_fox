@@ -1,7 +1,4 @@
-use cute_fox::{
-    requests::api_manager::{ApiManager, API_VERSION},
-    stages::users::User,
-};
+use cute_fox::{requests::api_manager::{ApiManager, API_VERSION}, stages::users::{UserInteraction}};
 use rusqlite::Connection;
 
 const START: i32 = 0;
@@ -25,7 +22,7 @@ async fn main() {
             .map(|e| e.to_string())
             .collect::<Vec<String>>()
             .join(", ");
-        let users = User::from_pages(&api, &ids, FIELDS).await;
+        let users = api.get_users(&ids, FIELDS).await;
 
         if let Ok(users) = users {
             let tx = connection.transaction().unwrap();

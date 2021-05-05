@@ -1,7 +1,4 @@
-use cute_fox::{
-    requests::api_manager::{ApiManager, API_VERSION},
-    stages::groups::Group,
-};
+use cute_fox::{requests::api_manager::{ApiManager, API_VERSION}, stages::groups::{GroupInteraction}};
 
 #[tokio::main]
 async fn main() {
@@ -13,8 +10,8 @@ async fn main() {
 
     let group_id = group_id.parse().expect("Please, specify correct group id");
 
-    let api_manager = ApiManager::new(access_token, API_VERSION);
-    let members = Group::get_members_ids(&api_manager, group_id).await;
+    let api = ApiManager::new(access_token, API_VERSION);
+    let members = api.get_members_ids(group_id).await;
 
     println!("{:#?}", members.unwrap());
 }
