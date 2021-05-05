@@ -1,6 +1,9 @@
 use async_trait::async_trait;
 
-use crate::{RobberError, requests::api_manager::{API_TIMEOUT_MS, ApiManager}};
+use crate::{
+    requests::api_manager::{ApiManager, API_TIMEOUT_MS},
+    RobberError,
+};
 use serde::Deserialize;
 
 use super::users::{User, UserInteraction};
@@ -63,22 +66,6 @@ impl GroupInteraction for ApiManager {
     }
     async fn get_members(&self, group_id: i32, fields: &str) -> Result<Vec<User>, RobberError> {
         let ids = self.get_members_ids(group_id).await?;
-        let ids: Vec<String> = ids.into_iter().map(|x| x.to_string()).collect();
-        let chunks = ids.chunks(100);
-
-        let mut result = Vec::with_capacity(ids.len());
-
-        for chunk in chunks {
-            let ids_list = chunk.join(", ");
-            let users = self.get_users(&ids_list, fields).await;
-
-            if let Ok(mut users) = users {
-                result.extend(users.drain(..));
-            }
-
-            tokio::time::sleep(tokio::time::Duration::from_millis(API_TIMEOUT_MS)).await;
-        }
-
-        Ok(result)
+        Ok(self.get_users(&ids, fields).await?)
     }
 }
