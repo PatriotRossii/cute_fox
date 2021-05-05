@@ -2,9 +2,9 @@
 #![feature(exact_size_is_empty)]
 
 use async_trait::async_trait;
-use stages::users::UserInteraction;
+use stages::users::{User, UserInteraction};
 use std::sync::Arc;
-use tokio::task;
+use tokio::task::JoinError;
 
 use requests::api_manager::ApiManager;
 
@@ -15,63 +15,80 @@ pub mod stages;
 pub enum RobberError {
     SerdeError(serde_json::Error),
     ReqwestError(reqwest::Error),
+    JoinError(JoinError),
     APIError,
 }
 
 #[derive(Debug, Clone)]
 pub enum CuteTask {
     GetMembers { group_id: i32 },
-    GetUsers { user_ids: Vec<i32> },
+    GetUsers { user_ids: Vec<i32>, fields: String },
+}
+
+#[derive(Debug)]
+pub enum CuteValue {
+    Users(Vec<User>),
 }
 
 #[async_trait]
 pub trait CuteExecutor {
-    async fn execute(&self, task: CuteTask);
+    async fn execute(&self, task: CuteTask) -> Result<CuteValue, RobberError>;
 }
 
 #[async_trait]
 impl CuteExecutor for CuteFox {
-    async fn execute(&self, task: CuteTask) {
+    async fn execute(&self, task: CuteTask) -> Result<CuteValue, RobberError> {
         match task {
-            CuteTask::GetMembers { group_id } => {}
-            CuteTask::GetUsers { user_ids } => {
-                let mut tasks = Vec::new();
-                let mut chunks = user_ids.chunks(100);
-
+            CuteTask::GetMembers { group_id: _ } => {
+                unimplemented!()
+            }
+            CuteTask::GetUsers { user_ids, fields } => {
                 let mut result = Vec::new();
+                let mut chunks = user_ids.chunks(10);
+
+                let fields = Arc::new(fields);
 
                 while !chunks.is_empty() {
+                    let mut tasks = Vec::new();
+
                     for manager in &*self.managers {
-                        if let Some(e) = chunks.next() {
-                            tasks.push(manager.get_users(e, ""));
-                        } else {
-                            break;
-                        }
+                        let chunk = match chunks.next() {
+                            Some(e) => e.to_owned(),
+                            None => break,
+                        };
+                        let new_manager = manager.clone();
+                        let fields = fields.clone();
+
+                        tasks.push(tokio::spawn(async move {
+                            let our_chunk = chunk;
+                            new_manager.get_users(&our_chunk, fields.as_ref()).await
+                        }));
+                    }
+
+                    for task in tasks {
+                        let mut users = task.await.map_err(RobberError::JoinError)??;
+                        result.extend(users.drain(..));
                     }
                 }
 
-                for task in tasks {
-                    result.extend(task.await.unwrap());
-                }
+                Ok(CuteValue::Users(result))
             }
         }
     }
 }
 
 pub struct CuteFox {
-    count_of_managers: usize,
-    managers: Arc<Vec<ApiManager>>,
+    managers: Arc<Vec<Arc<ApiManager>>>,
 }
 
 impl CuteFox {
-    pub fn new(tokens: &[&str], api_version: &str) -> Self {
-        let managers: Vec<ApiManager> = tokens
+    pub fn new(tokens: &[String], api_version: &str) -> Self {
+        let managers: Vec<Arc<ApiManager>> = tokens
             .iter()
-            .map(|&e| ApiManager::new(e, api_version))
+            .map(|e| Arc::new(ApiManager::new(e, api_version)))
             .collect();
 
         Self {
-            count_of_managers: managers.len(),
             managers: Arc::new(managers),
         }
     }
