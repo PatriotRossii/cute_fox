@@ -40,6 +40,10 @@ path = "tests/save_user/save_user.rs"
 name = "get_all_users"
 path = "tests/get_all_users/get_all_users.rs"
 
+[[bin]]
+name = "get_all_users_parallel"
+path = "tests/get_all_users_parallel/get_all_users_parallel.rs"
+
 [profile.dev]
 opt-level = 0
 debug = true
