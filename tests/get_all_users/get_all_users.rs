@@ -1,4 +1,4 @@
-use cute_fox::{requests::api_manager::{ApiManager, API_VERSION}, stages::users::{UserInteraction}};
+use cute_fox::{requests::api_manager::{API_TIMEOUT_MS, API_VERSION, ApiManager}, stages::users::{UserInteraction}};
 use rusqlite::Connection;
 
 const START: i32 = 0;
@@ -33,6 +33,6 @@ async fn main() {
             println!("Saved users from {} to {}", i * 100, (i + 1) * 100);
         }
 
-        tokio::time::sleep(tokio::time::Duration::from_millis(400)).await;
+        tokio::time::sleep(tokio::time::Duration::from_millis(API_TIMEOUT_MS)).await;
     }
 }

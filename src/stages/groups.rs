@@ -1,6 +1,6 @@
 use async_trait::async_trait;
 
-use crate::{requests::api_manager::ApiManager, RobberError};
+use crate::{RobberError, requests::api_manager::{API_TIMEOUT_MS, ApiManager}};
 use serde::Deserialize;
 
 use super::users::{User, UserInteraction};
@@ -56,7 +56,7 @@ impl GroupInteraction for ApiManager {
 
             result.extend(resp.items.drain(..));
 
-            tokio::time::sleep(tokio::time::Duration::from_millis(350)).await;
+            tokio::time::sleep(tokio::time::Duration::from_millis(API_TIMEOUT_MS)).await;
         }
 
         Ok(result)
@@ -76,7 +76,7 @@ impl GroupInteraction for ApiManager {
                 result.extend(users.drain(..));
             }
 
-            tokio::time::sleep(tokio::time::Duration::from_millis(400)).await;
+            tokio::time::sleep(tokio::time::Duration::from_millis(API_TIMEOUT_MS)).await;
         }
 
         Ok(result)
