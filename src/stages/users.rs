@@ -3,6 +3,8 @@ use rusqlite::params;
 use serde::{Deserialize, Serialize};
 use serde_with::serde_as;
 
+use async_trait::async_trait;
+
 macro_rules! try_save {
     ($obj:expr, $name:ident, $conn:expr, $table_name:expr, $id:expr) => {
         if let Some(obj) = $obj {
@@ -865,28 +867,22 @@ pub struct UserGet {
     response: Option<Vec<User>>,
 }
 
-impl User {
-    pub async fn from_page(
-        api: &ApiManager,
-        user_id: &str,
-        fields: &str,
-    ) -> Result<User, RobberError> {
-        let result = User::from_pages(api, user_id, fields).await;
-        if let Ok(mut e) = result {
-            Ok(e.pop().unwrap())
-        } else if let Err(e) = result {
-            Err(e)
-        } else {
-            unreachable!()
-        }
+#[async_trait]
+pub trait UserInteraction {
+    async fn get_user(&self, user_id: &str, fields: &str) -> Result<User, RobberError>;
+    async fn get_users(&self, user_ids: &str, fields: &str) -> Result<Vec<User>, RobberError>;
+}
+
+#[async_trait]
+impl UserInteraction for ApiManager {
+    async fn get_user(&self, user_id: &str, fields: &str) -> Result<User, RobberError> {
+        let result = self.get_users(user_id, fields).await;
+        result.map(|mut e| e.pop().unwrap())
     }
-    pub async fn from_pages(
-        api: &ApiManager,
-        user_id: &str,
-        fields: &str,
-    ) -> Result<Vec<User>, RobberError> {
-        let resp = api
-            .request_json::<_, UserGet>("users.get", &[("user_ids", user_id), ("fields", fields)])
+
+    async fn get_users(&self, user_ids: &str, fields: &str) -> Result<Vec<User>, RobberError> {
+        let resp = self
+            .request_json::<_, UserGet>("users.get", &[("user_ids", user_ids), ("fields", fields)])
             .await
             .unwrap();
 
