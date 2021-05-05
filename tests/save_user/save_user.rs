@@ -1,4 +1,7 @@
-use cute_fox::{requests::api_manager::{ApiManager, API_VERSION}, stages::groups::{GroupInteraction}};
+use cute_fox::{
+    requests::api_manager::{ApiManager, API_VERSION},
+    stages::groups::GroupInteraction,
+};
 use rusqlite::Connection;
 
 const FIELDS: &str = "verified, sex, bdate, city, country, home_town, has_photo, photo_max_orig, domain, has_mobile, contacts, site, education, universities, schools, status, last_seen, followers_count, occupation, nickname, relatives, relation, personal, connections, activities, interests, music, movies, tv, books, games, about, quotes, timezone, screen_name, maiden_name, career, military";

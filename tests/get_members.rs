@@ -1,4 +1,7 @@
-use cute_fox::{requests::api_manager::{ApiManager, API_VERSION}, stages::groups::{GroupInteraction}};
+use cute_fox::{
+    requests::api_manager::{ApiManager, API_VERSION},
+    stages::groups::GroupInteraction,
+};
 
 #[tokio::main]
 async fn main() {

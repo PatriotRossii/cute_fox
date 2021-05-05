@@ -1,4 +1,7 @@
-use cute_fox::{requests::api_manager::{API_TIMEOUT_MS, API_VERSION, ApiManager}, stages::users::{UserInteraction}};
+use cute_fox::{
+    requests::api_manager::{ApiManager, API_TIMEOUT_MS, API_VERSION},
+    stages::users::UserInteraction,
+};
 use rusqlite::Connection;
 
 const START: i32 = 0;
@@ -17,11 +20,8 @@ async fn main() {
 
     let mut connection = Connection::open(&db_path).expect("Failed to open database");
 
-    for i in START..=(STOP - START) / 100 {
-        let ids: String = ((i * 100)..((i + 1) * 100))
-            .map(|e| e.to_string())
-            .collect::<Vec<String>>()
-            .join(", ");
+    for i in START..=(STOP - START) / 1000 {
+        let ids = ((i * 1000)..((i + 1) * 1000)).collect::<Vec<i32>>();
         let users = api.get_users(&ids, FIELDS).await;
 
         if let Ok(users) = users {
