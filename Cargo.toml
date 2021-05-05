@@ -32,3 +32,19 @@ path = "tests/get_members.rs"
 [[bin]]
 name = "save_user"
 path = "tests/save_user/save_user.rs"
+
+[[bin]]
+name = "get_all_users"
+path = "tests/get_all_users/get_all_users.rs"
+
+[profile.dev]
+opt-level = 0
+debug = true
+split-debuginfo = '...'  # Platform-specific.
+debug-assertions = true
+overflow-checks = true
+lto = false
+panic = 'unwind'
+incremental = true
+codegen-units = 256
+rpath = false
