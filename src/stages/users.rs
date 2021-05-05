@@ -862,7 +862,7 @@ impl User {
 
 #[derive(Deserialize)]
 pub struct UserGet {
-    response: Vec<User>,
+    response: Option<Vec<User>>,
 }
 
 impl User {
@@ -889,7 +889,11 @@ impl User {
             .request_json::<_, UserGet>("users.get", &[("user_ids", user_id), ("fields", fields)])
             .await
             .unwrap();
-        Ok(resp.response)
+
+        match resp.response {
+            Some(e) => Ok(e),
+            None => Err(RobberError::APIError),
+        }
     }
 }
 
