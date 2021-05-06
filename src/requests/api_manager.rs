@@ -1,5 +1,6 @@
 use std::future::Future;
 
+use futures::TryFutureExt;
 use reqwest::{Client, Error, Response};
 use serde::{Deserialize, Serialize};
 
@@ -48,16 +49,12 @@ impl ApiManager {
         &self,
         method: &str,
         params: &T,
-    ) -> Result<Y, RobberError>
+    ) -> impl Future<Output = Result<Y, RobberError>>
     where
         Y: for<'de> Deserialize<'de>,
     {
-        Ok(self
-            .request(method, params)
-            .await
-            .map_err(RobberError::ReqwestError)?
-            .json::<Y>()
-            .await
-            .map_err(RobberError::ReqwestError)?)
+        self.request(method, params)
+            .and_then(|x| x.json::<Y>())
+            .map_err(RobberError::ReqwestError)
     }
 }

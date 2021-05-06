@@ -36,6 +36,7 @@ impl GroupInteraction for ApiManager {
     async fn get_members_ids(&self, group_id: i32) -> Result<Vec<i32>, RobberError> {
         let spy_request = self
             .request_json::<_, GetMembers>("groups.getMembers", &[("group_id", group_id)])
+            .await
             .await?;
 
         if !spy_request.validate() {
@@ -51,6 +52,7 @@ impl GroupInteraction for ApiManager {
                     "groups.getMembers",
                     &[("group_id", group_id), ("offset", i * 1000)],
                 )
+                .await
                 .await?;
             if !request.validate() {
                 return Err(RobberError::APIError);

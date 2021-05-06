@@ -44,7 +44,7 @@ impl CuteExecutor for CuteFox {
             }
             CuteTask::GetUsers { user_ids, fields } => {
                 let mut result = Vec::new();
-                let mut chunks = user_ids.chunks(1000);
+                let mut chunks = user_ids.chunks(10);
 
                 let fields = Arc::new(fields);
 
@@ -65,10 +65,12 @@ impl CuteExecutor for CuteFox {
                         }));
                     }
 
+                    let start = std::time::Instant::now();
                     for task in tasks {
                         let mut users = task.await.map_err(RobberError::JoinError)??;
                         result.extend(users.drain(..));
                     }
+                    println!("{} ms elapsed", start.elapsed().as_millis());
                 }
 
                 Ok(CuteValue::Users(result))

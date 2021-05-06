@@ -887,17 +887,20 @@ impl UserInteraction for ApiManager {
 
     async fn get_users(&self, user_ids: &[i32], fields: &str) -> Result<Vec<User>, RobberError> {
         let mut users: Vec<User> = Vec::with_capacity(user_ids.len());
+
         for chunk in user_ids.chunks(USERS_PER_REQUEST) {
             let ids: String = chunk
                 .iter()
                 .map(i32::to_string)
                 .collect::<Vec<String>>()
                 .join(", ");
+
             let resp = self
                 .request_json::<_, UserGet>(
                     "users.get",
                     &[("user_ids", ids.as_str()), ("fields", fields)],
                 )
+                .await
                 .await?;
 
             match resp.response {
