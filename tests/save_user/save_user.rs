@@ -24,7 +24,7 @@ async fn main() {
 
     let tx = connection.transaction().unwrap();
     for member in members.unwrap() {
-        member.store(&tx, "objects");
+        member.store(&tx, "objects").unwrap();
     }
     tx.commit().unwrap();
 }

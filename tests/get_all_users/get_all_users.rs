@@ -27,7 +27,7 @@ async fn main() {
         if let Ok(users) = users {
             let tx = connection.transaction().unwrap();
             for user in users {
-                user.store(&tx, "objects");
+                user.store(&tx, "objects").unwrap();
             }
             tx.commit().unwrap();
             println!("Saved users from {} to {}", i * 100, (i + 1) * 100);

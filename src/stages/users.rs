@@ -9,13 +9,13 @@ use serde_with::serde_as;
 use async_trait::async_trait;
 
 macro_rules! try_save {
-    ($obj:expr, $name:ident, $conn:expr, $table_name:expr, $id:expr) => {
+    ($obj:expr, $name:ident, $conn:expr, $table_name:expr, $id:expr) => {{
         if let Some(obj) = $obj {
-            if let Err(e) = obj.store($conn, $table_name, $id) {
-                panic!("Failed saving {}: {}", stringify!($name), e);
-            }
+            obj.store($conn, $table_name, $id)
+        } else {
+            Ok(0)
         }
-    };
+    }};
 }
 
 macro_rules! store_many {
@@ -781,7 +781,11 @@ pub struct User {
 }
 
 impl User {
-    pub fn store(self, connection: &rusqlite::Transaction, table_name: &str) {
+    pub fn store(
+        self,
+        connection: &rusqlite::Transaction,
+        table_name: &str,
+    ) -> Result<(), rusqlite::Error> {
         let query = format!("INSERT OR REPLACE INTO {} (id, first_name, last_name, deactivated, is_closed, about, activities, bdate, books, domain, followers_count, games, has_mobile, has_photo, home_town, interests, maiden_name, movies, music, nickname, photo_max_orig, quotes, screen_name, sex, site, status, tv, verified, skype, facebook, twitter, livejournal, instagram) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)", table_name);
 
         if let Err(e) = connection.execute(
@@ -825,27 +829,27 @@ impl User {
             panic!("Failed saving object: {}", e);
         }
 
-        try_save!(self.career, career, connection, "career", self.id);
-        try_save!(self.city, city, connection, "city", self.id);
+        try_save!(self.career, career, connection, "career", self.id)?;
+        try_save!(self.city, city, connection, "city", self.id)?;
 
-        try_save!(self.counters, counters, connection, "counters", self.id);
-        try_save!(self.country, country, connection, "country", self.id);
+        try_save!(self.counters, counters, connection, "counters", self.id)?;
+        try_save!(self.country, country, connection, "country", self.id)?;
 
-        try_save!(self.education, education, &connection, "education", self.id);
+        try_save!(self.education, education, &connection, "education", self.id)?;
 
-        try_save!(self.last_seen, last_seen, &connection, "last_seen", self.id);
-        try_save!(self.personal, personal, &connection, "personal", self.id);
-        try_save!(self.contacts, contacts, &connection, "contacts", self.id);
+        try_save!(self.last_seen, last_seen, &connection, "last_seen", self.id)?;
+        try_save!(self.personal, personal, &connection, "personal", self.id)?;
+        try_save!(self.contacts, contacts, &connection, "contacts", self.id)?;
 
-        try_save!(self.military, military, connection, "military", self.id);
+        try_save!(self.military, military, connection, "military", self.id)?;
         try_save!(
             self.occupation,
             occupation,
             connection,
             "occupation",
             self.id
-        );
-        try_save!(self.relatives, relatives, connection, "relatives", self.id);
+        )?;
+        try_save!(self.relatives, relatives, connection, "relatives", self.id)?;
 
         try_save!(
             self.relation_partner,
@@ -853,15 +857,17 @@ impl User {
             connection,
             "relation_partner",
             self.id
-        );
-        try_save!(self.schools, schools, connection, "schools", self.id);
+        )?;
+        try_save!(self.schools, schools, connection, "schools", self.id)?;
         try_save!(
             self.universities,
             universities,
             connection,
             "universities",
             self.id
-        );
+        )?;
+
+        Ok(())
     }
 }
 
@@ -876,7 +882,11 @@ const USERS_PER_REQUEST: usize = 1000;
 pub trait UserInteraction {
     async fn get_user(&self, user_id: i32, fields: &str) -> Result<User, RobberError>;
     async fn get_users(&self, user_ids: &[i32], fields: &str) -> Result<Vec<User>, RobberError>;
-    async fn get_users_unchecked(&self, user_ids: &[i32], fields: &str) -> Result<Vec<User>, RobberError>;
+    async fn get_users_unchecked(
+        &self,
+        user_ids: &[i32],
+        fields: &str,
+    ) -> Result<Vec<User>, RobberError>;
 }
 
 #[async_trait]
@@ -911,11 +921,26 @@ impl UserInteraction for ApiManager {
         Ok(users)
     }
 
-    async fn get_users_unchecked(&self, user_ids: &[i32], fields: &str) -> Result<Vec<User>, RobberError> {
-        let ids = user_ids.iter().map(i32::to_string).collect::<Vec<String>>().join(", ");
-        match self.request_json::<_, UserGet>("users.get", &[("user_ids", ids.as_str()), ("fields", fields)]).await?.response {
+    async fn get_users_unchecked(
+        &self,
+        user_ids: &[i32],
+        fields: &str,
+    ) -> Result<Vec<User>, RobberError> {
+        let ids = user_ids
+            .iter()
+            .map(i32::to_string)
+            .collect::<Vec<String>>()
+            .join(", ");
+        match self
+            .request_json::<_, UserGet>(
+                "users.get",
+                &[("user_ids", ids.as_str()), ("fields", fields)],
+            )
+            .await?
+            .response
+        {
             Some(e) => Ok(e),
-            None => Err(RobberError::APIError)
+            None => Err(RobberError::APIError),
         }
     }
 }
