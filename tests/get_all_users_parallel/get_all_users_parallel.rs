@@ -1,26 +1,33 @@
 use cute_fox::{requests::api_manager::API_VERSION, CuteExecutor, CuteFox, CuteTask};
-use std::time::Instant;
 
 #[tokio::main]
 async fn main() {
-    let tokens = vec![
-        String::from(
-            "1a75deefcde10db3cbe49f350d505359939488642b3c4254af12382bcfabbdaee539d72d16e3090d450e9",
-        ),
-        String::from(
-            "004d3a7c93b131021e13925aca95ceb6db27c772ec6cbf55978356e681d5a298bd1f8eb747b4613a255ae",
-        ),
-    ];
+    let mut args = std::env::args();
+
+    let _ = args.next().unwrap();
+
+    let from = args
+        .next()
+        .expect("Please, specify start user_id")
+        .parse::<i32>()
+        .expect("Please, specify correct user_id");
+    let to = args
+        .next()
+        .expect("Please, specify end user_id")
+        .parse::<i32>()
+        .expect("Please, specify correct user_id");
+
+    let fields = args.next().expect("Please, specify fields need to collect");
+    let tokens: Vec<String> = args.collect();
+
+    if tokens.len() == 0 {
+        panic!("Please, specify at least one token")
+    }
+
     let fox = CuteFox::new(&tokens, API_VERSION);
     let task = CuteTask::GetUsers {
-        user_ids: (0..10000).collect::<Vec<i32>>(),
-        fields: String::from(""),
+        user_ids: (from..=to).collect::<Vec<i32>>(),
+        fields,
     };
-
-    let start = Instant::now();
     fox.execute(task).await.unwrap();
-    println!(
-        "Time elapsed in expensive_function() is: {:?}",
-        start.elapsed()
-    );
 }

@@ -44,7 +44,7 @@ impl CuteExecutor for CuteFox {
             }
             CuteTask::GetUsers { user_ids, fields } => {
                 let mut result = Vec::new();
-                let mut chunks = user_ids.chunks(10);
+                let mut chunks = user_ids.chunks(1000);
 
                 let fields = Arc::new(fields);
 
