@@ -53,27 +53,27 @@ impl CuteExecutor for CuteFox {
                 let mut chunks = user_ids.chunks(1000);
 
                 let fields = Arc::new(fields);
+                let mut tasks = Vec::new();
 
-                while !chunks.is_empty() {
-                    let mut tasks = Vec::new();
-
+                'inner: while !chunks.is_empty() {
                     for manager in &*self.managers {
                         let chunk = match chunks.next() {
                             Some(e) => e.to_owned(),
-                            None => break,
+                            None => break 'inner,
                         };
                         let new_manager = manager.clone();
                         let fields = fields.clone();
 
                         tasks.push(tokio::spawn(async move {
                             let our_chunk = chunk;
-                            new_manager.get_users(&our_chunk, fields.as_ref()).await
+                            new_manager.get_users_unchecked(&our_chunk, fields.as_ref()).await
                         }));
                     }
+                    tokio::time::sleep(tokio::time::Duration::from_millis(400)).await;
+                }
 
-                    for task in tasks {
-                        result.extend(task.await.map_err(RobberError::JoinError)??.drain(..));
-                    }
+                for task in tasks {
+                    result.extend(task.await.map_err(RobberError::JoinError)??.drain(..));
                 }
 
                 Ok(CuteValue::Users(result))

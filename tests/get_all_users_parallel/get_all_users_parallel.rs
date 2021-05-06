@@ -26,7 +26,7 @@ async fn main() {
 
     let fox = CuteFox::new(&tokens, API_VERSION);
     let task = CuteTask::GetUsers {
-        user_ids: (from..=to).collect::<Vec<i32>>(),
+        user_ids: (from..to).collect::<Vec<i32>>(),
         fields,
     };
     fox.execute(task).await.unwrap();

@@ -876,6 +876,7 @@ const USERS_PER_REQUEST: usize = 1000;
 pub trait UserInteraction {
     async fn get_user(&self, user_id: i32, fields: &str) -> Result<User, RobberError>;
     async fn get_users(&self, user_ids: &[i32], fields: &str) -> Result<Vec<User>, RobberError>;
+    async fn get_users_unchecked(&self, user_ids: &[i32], fields: &str) -> Result<Vec<User>, RobberError>;
 }
 
 #[async_trait]
@@ -908,6 +909,14 @@ impl UserInteraction for ApiManager {
             tokio::time::sleep(tokio::time::Duration::from_millis(API_TIMEOUT_MS)).await;
         }
         Ok(users)
+    }
+
+    async fn get_users_unchecked(&self, user_ids: &[i32], fields: &str) -> Result<Vec<User>, RobberError> {
+        let ids = user_ids.iter().map(i32::to_string).collect::<Vec<String>>().join(", ");
+        match self.request_json::<_, UserGet>("users.get", &[("user_ids", ids.as_str()), ("fields", fields)]).await?.response {
+            Some(e) => Ok(e),
+            None => Err(RobberError::APIError)
+        }
     }
 }
 
