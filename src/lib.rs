@@ -2,6 +2,7 @@
 #![feature(exact_size_is_empty)]
 
 use async_trait::async_trait;
+use itertools::Itertools;
 use stages::{
     groups::GroupInteraction,
     users::{User, UserInteraction},
@@ -31,6 +32,41 @@ pub enum CuteTask {
 #[derive(Debug)]
 pub enum CuteValue {
     Users(Vec<User>),
+}
+
+pub trait SqliteStorage {
+    fn save(
+        self,
+        conn: &mut rusqlite::Connection,
+        transaction_size: usize,
+    ) -> Result<(), rusqlite::Error>;
+}
+
+impl SqliteStorage for CuteValue {
+    fn save(
+        self,
+        conn: &mut rusqlite::Connection,
+        transaction_size: usize,
+    ) -> Result<(), rusqlite::Error> {
+        match self {
+            CuteValue::Users(e) => {
+                let chunks: Vec<Vec<User>> = e
+                    .into_iter()
+                    .chunks(transaction_size)
+                    .into_iter()
+                    .map(|chunk| chunk.collect())
+                    .collect();
+                for chunk in chunks {
+                    let transaction = conn.transaction()?;
+                    for user in chunk {
+                        user.store(&transaction, "objects")?;
+                    }
+                    transaction.commit()?;
+                }
+            }
+        }
+        Ok(())
+    }
 }
 
 #[async_trait]
@@ -66,7 +102,9 @@ impl CuteExecutor for CuteFox {
 
                         tasks.push(tokio::spawn(async move {
                             let our_chunk = chunk;
-                            new_manager.get_users_unchecked(&our_chunk, fields.as_ref()).await
+                            new_manager
+                                .get_users_unchecked(&our_chunk, fields.as_ref())
+                                .await
                         }));
                     }
                     tokio::time::sleep(tokio::time::Duration::from_millis(400)).await;
