@@ -20,7 +20,7 @@ async fn main() {
     let fields = args.next().expect("Please, specify fields need to collect");
     let tokens: Vec<String> = args.collect();
 
-    if tokens.len() == 0 {
+    if tokens.is_empty() {
         panic!("Please, specify at least one token")
     }
 

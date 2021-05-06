@@ -2,7 +2,10 @@
 #![feature(exact_size_is_empty)]
 
 use async_trait::async_trait;
-use stages::users::{User, UserInteraction};
+use stages::{
+    groups::GroupInteraction,
+    users::{User, UserInteraction},
+};
 use std::sync::Arc;
 use tokio::task::JoinError;
 
@@ -21,7 +24,7 @@ pub enum RobberError {
 
 #[derive(Debug, Clone)]
 pub enum CuteTask {
-    GetMembers { group_id: i32 },
+    GetMembers { group_id: i32, fields: String },
     GetUsers { user_ids: Vec<i32>, fields: String },
 }
 
@@ -39,8 +42,11 @@ pub trait CuteExecutor {
 impl CuteExecutor for CuteFox {
     async fn execute(&self, task: CuteTask) -> Result<CuteValue, RobberError> {
         match task {
-            CuteTask::GetMembers { group_id: _ } => {
-                unimplemented!()
+            CuteTask::GetMembers { group_id, fields } => {
+                let spy_manager = &self.managers[0];
+                let user_ids = spy_manager.get_members_ids(group_id).await?;
+
+                self.execute(CuteTask::GetUsers { user_ids, fields }).await
             }
             CuteTask::GetUsers { user_ids, fields } => {
                 let mut result = Vec::new();
@@ -66,8 +72,7 @@ impl CuteExecutor for CuteFox {
                     }
 
                     for task in tasks {
-                        let mut users = task.await.map_err(RobberError::JoinError)??;
-                        result.extend(users.drain(..));
+                        result.extend(task.await.map_err(RobberError::JoinError)??.drain(..));
                     }
                 }
 
