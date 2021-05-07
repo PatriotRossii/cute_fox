@@ -7,7 +7,7 @@ use stages::{
     groups::GroupInteraction,
     users::{User, UserInteraction},
 };
-use std::sync::Arc;
+use std::{collections::VecDeque, sync::Arc};
 use tokio::task::JoinError;
 
 use requests::api_manager::ApiManager;
@@ -86,24 +86,30 @@ impl CuteExecutor for CuteFox {
             }
             CuteTask::GetUsers { user_ids, fields } => {
                 let mut result = Vec::new();
-                let mut chunks = user_ids.chunks(1000);
+
+                let mut chunks: VecDeque<Vec<i32>> = user_ids
+                    .into_iter()
+                    .chunks(1000)
+                    .into_iter()
+                    .map(|chunk| chunk.collect())
+                    .collect();
 
                 let fields = Arc::new(fields);
                 let mut tasks = Vec::new();
 
                 'inner: while !chunks.is_empty() {
                     for manager in &*self.managers {
-                        let chunk = match chunks.next() {
-                            Some(e) => e.to_owned(),
+                        let chunk = match chunks.pop_front() {
+                            Some(e) => e,
                             None => break 'inner,
                         };
+
                         let new_manager = manager.clone();
                         let fields = fields.clone();
 
                         tasks.push(tokio::spawn(async move {
-                            let our_chunk = chunk;
                             new_manager
-                                .get_users_unchecked(&our_chunk, fields.as_ref())
+                                .get_users_unchecked(&chunk, fields.as_ref())
                                 .await
                         }));
                     }
