@@ -21,29 +21,29 @@ futures = "0"
 async-trait = "0"
 itertools = "0"
 
-[[bin]]
+[dev-dependencies]
+clap = { version = "2" }
+
+[[example]]
 name = "user_from_page"
-path = "tests/user_from_page.rs"
 
-[[bin]]
+[[example]]
 name = "get_members_ids"
-path = "tests/get_members_ids.rs"
 
-[[bin]]
+[[example]]
 name = "get_members"
-path = "tests/get_members.rs"
 
-[[bin]]
+[[example]]
 name = "save_user"
-path = "tests/save_user/save_user.rs"
+path = "examples/save_user/save_user.rs"
 
-[[bin]]
+[[example]]
 name = "get_all_users"
-path = "tests/get_all_users/get_all_users.rs"
+path = "examples/get_all_users/get_all_users.rs"
 
-[[bin]]
+[[example]]
 name = "get_all_users_parallel"
-path = "tests/get_all_users_parallel/get_all_users_parallel.rs"
+path = "examples/get_all_users_parallel/get_all_users_parallel.rs"
 
 [profile.dev]
 opt-level = 0
