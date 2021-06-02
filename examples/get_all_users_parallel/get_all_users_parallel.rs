@@ -1,28 +1,62 @@
+use clap::{App, Arg};
 use cute_fox::{requests::api_manager::API_VERSION, CuteExecutor, CuteFox, CuteTask};
+
+pub fn is_integer(x: String) -> Result<(), String> {
+    match x.parse::<i32>() {
+        Ok(_) => Ok(()),
+        Err(_) => Err(String::from("Expected integer, found shit"))
+    }
+}
 
 #[tokio::main]
 async fn main() {
-    let mut args = std::env::args();
+    let matches = App::new("get all users parallel")
+        .author("PatriotRossii <patriotrossii2019@mail.ru")
+        .arg(
+            Arg::with_name("lower_bound")
+                .long("lower_bound")
+                .value_name("LOWER_BOUND")
+                .takes_value(true)
+                .required(true)
+                .help("Upper bound of ids to collect")
+                .validator(is_integer)
+        )
+        .arg(
+            Arg::with_name("upper_bound")
+                .long("upper_bound")
+                .value_name("UPPER_BOUND")
+                .takes_value(true)
+                .required(true)
+                .help("Upper bound of ids to collect")
+                .validator(is_integer)
+        )
+        .arg(
+            Arg::with_name("field")
+                .long("field")
+                .value_name("FIELD")
+                .takes_value(true)
+                .help("Field to collect")
+                .multiple(true)
+        )
+        .arg(
+            Arg::with_name("access_token")
+                .long("access_token")
+                .value_name("ACCESS_TOKEN")
+                .takes_value(true)
+                .help("Access token to use")
+                .multiple(true)
+                .required(true)
+        )
+        .get_matches();
 
-    let _ = args.next().unwrap();
-
-    let from = args
-        .next()
-        .expect("Please, specify start user_id")
-        .parse::<i32>()
-        .expect("Please, specify correct user_id");
-    let to = args
-        .next()
-        .expect("Please, specify end user_id")
-        .parse::<i32>()
-        .expect("Please, specify correct user_id");
-
-    let fields = args.next().expect("Please, specify fields need to collect");
-    let tokens: Vec<String> = args.collect();
-
-    if tokens.is_empty() {
-        panic!("Please, specify at least one token")
-    }
+    let from: i32 = matches.value_of("lower_bound").unwrap().parse().unwrap();
+    let to: i32 = matches.value_of("upper_bound").unwrap().parse().unwrap();
+    
+    let fields: String = match matches.values_of("field") {
+        Some(e) => e.collect::<Vec<&str>>().join(","),
+        None => String::from("")
+    };
+    let tokens: Vec<String> = matches.values_of("access_token").unwrap().map(|x| x.to_string()).collect::<Vec<String>>();
 
     let fox = CuteFox::new(&tokens, API_VERSION);
     let task = CuteTask::GetUsers {
