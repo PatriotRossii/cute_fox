@@ -786,7 +786,7 @@ impl User {
         connection: &rusqlite::Transaction,
         table_name: &str,
     ) -> Result<(), rusqlite::Error> {
-        let query = format!("INSERT OR REPLACE INTO {} (id, first_name, last_name, deactivated, is_closed, about, activities, bdate, books, domain, followers_count, games, has_mobile, has_photo, home_town, interests, maiden_name, movies, music, nickname, photo_max_orig, quotes, screen_name, sex, site, status, tv, verified, skype, facebook, twitter, livejournal, instagram) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)", table_name);
+        let query = format!("INSERT OR REPLACE INTO {} (id, first_name, last_name, deactivated, is_closed, about, activities, bdate, books, domain, followers_count, games, has_mobile, has_photo, home_town, interests, maiden_name, movies, music, nickname, photo_max_orig, quotes, screen_name, sex, site, status, tv, verified, skype, facebook, twitter, livejournal, instagram, relation) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)", table_name);
 
         if let Err(e) = connection.execute(
             &query,
@@ -823,7 +823,8 @@ impl User {
                 self.facebook,
                 self.twitter,
                 self.livejournal,
-                self.instagram
+                self.instagram,
+                self.relation
             ],
         ) {
             panic!("Failed saving object: {}", e);
