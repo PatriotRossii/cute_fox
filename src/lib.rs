@@ -98,7 +98,7 @@ impl CuteExecutor for CuteFox {
                 let mut tasks = Vec::new();
 
                 'inner: while !chunks.is_empty() {
-                    for manager in &*self.managers {
+                    for manager in self.managers.as_ref() {
                         let chunk = match chunks.pop_front() {
                             Some(e) => e,
                             None => break 'inner,
