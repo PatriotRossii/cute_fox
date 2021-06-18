@@ -6,7 +6,7 @@ use serde::{Deserialize, Serialize};
 use crate::RobberError;
 
 pub const API_VERSION: &str = "5.130";
-pub const API_TIMEOUT_MS: u64 = 350;
+pub const API_TIMEOUT_MS: u64 = 400;
 
 pub struct ApiManager {
     token: String,

@@ -911,6 +911,8 @@ impl UserInteraction for ApiManager {
                     &[("user_ids", ids.as_str()), ("fields", fields)],
                 )
                 .await?;
+            
+            println!("{:?} {:?}", ids, fields);
 
             match resp.response {
                 Some(mut e) => users.extend(e.drain(..)),

@@ -8,13 +8,13 @@ use serde::Deserialize;
 
 use super::users::{User, UserInteraction};
 
-#[derive(Deserialize)]
+#[derive(Debug, Deserialize)]
 pub struct GetMembersResponse {
     count: i32,
     items: Vec<i32>,
 }
 
-#[derive(Deserialize)]
+#[derive(Debug, Deserialize)]
 pub struct GetMembers {
     response: Option<GetMembersResponse>,
 }
